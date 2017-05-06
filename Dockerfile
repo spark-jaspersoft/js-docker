@@ -8,7 +8,7 @@ FROM tomcat:8.0-jre8
 # Build will fail if file not present.
 COPY resources/jasperreports-server*zip /tmp/jasperserver.zip
 
-RUN apt-get update && apt-get install -y postgresql-client unzip xmlstarlet && \
+RUN apt-get update && apt-get install -y mysql-client unzip xmlstarlet && \
     rm -rf /var/lib/apt/lists/* && \
     unzip /tmp/jasperserver.zip -d /usr/src/ && \
     mv /usr/src/jasperreports-server-* /usr/src/jasperreports-server && \

@@ -17,11 +17,11 @@
 set -e
 
 setup_jasperserver() {
-  # If environment is not set, uses default values for postgres
-  DB_USER=${DB_USER:-postgres}
-  DB_PASSWORD=${DB_PASSWORD:-postgres}
-  DB_HOST=${DB_HOST:-postgres}
-  DB_PORT=${DB_PORT:-5432}
+  # If environment is not set, uses default values for mysql
+  DB_USER=${DB_USER:-root}
+  DB_PASSWORD=${DB_PASSWORD:-root}
+  DB_HOST=${DB_HOST:-mysql}
+  DB_PORT=${DB_PORT:-3306}
   DB_NAME=${DB_NAME:-jasperserver}
 
   # Simple default_master.properties. Modify according to
@@ -30,7 +30,7 @@ setup_jasperserver() {
 <<-_EOL_
 appServerType=tomcat8
 appServerDir=$CATALINA_HOME
-dbType=postgresql
+dbType=mysql
 dbHost=$DB_HOST
 dbUsername=$DB_USER
 dbPassword=$DB_PASSWORD
@@ -85,8 +85,8 @@ run_jasperserver() {
   fi
 
     
-  # Wait for PostgreSQL.
-  retry_postgresql
+  # Wait for MySQL.
+  retry_mysql
 
   # Force regeneration of database configuration if variable is set.
   # This supports changes to DB configuration for already created
@@ -96,7 +96,7 @@ run_jasperserver() {
   fi
  
   # Set up jasperserver database if it is not present.
-  if [[ `test_postgresql -l | grep -i ${DB_NAME:-jasperserver} | wc -l` < 1 \
+  if [[ `test_mysql -l | grep -i ${DB_NAME:-jasperserver} | wc -l` < 1 \
     ]]; then
     setup_jasperserver set-pro-webapp-name \
       create-js-db \
@@ -124,8 +124,8 @@ run_jasperserver() {
 }
 
 init_database() {
-  # Wait for PostgreSQL.
-  retry_postgresql
+  # Wait for MySQL.
+  retry_mysql
   # Run-only db creation targets.
   setup_jasperserver create-js-db init-js-db-pro import-minimal-pro
 }
@@ -145,21 +145,20 @@ config_license() {
   fi
 }
 
-test_postgresql() {
-  export PGPASSWORD=${DB_PASSWORD:-postgres}
-  psql -h ${DB_HOST:-postgres} -p ${DB_PORT:-5432} -U ${DB_USER:-postgres} $@
+test_mysql() {
+  mysql -h ${DB_HOST:-mysql} -P ${DB_PORT:-5432} -u ${DB_USER:-root} -p${DB_PASSWORD:-root} $@
 }
 
-retry_postgresql() {
-  # Retry 5 times to check PostgreSQL is accessible.
+retry_mysql() {
+  # Retry 5 times to check MySQL is accessible.
   for retry in {1..5}; do
-    test_postgresql && echo "PostgreSQL accepting connections" && break || \
-      echo "Waiting for PostgreSQL..." && sleep 10;
+    test_mysql && echo "MySQL accepting connections" && break || \
+      echo "Waiting for MySQL..." && sleep 10;
   done
 
-  # Fail if PostgreSQL is not accessible
-  test_postgresql || \
-    echo "Error: PostgreSQL on ${DB_HOST:-postgres} not accessible!"
+  # Fail if MySQL is not accessible
+  test_mysql || \
+    echo "Error: MySQL on ${DB_HOST:-mysql} not accessible!"
 }
 
 config_phantomjs() {

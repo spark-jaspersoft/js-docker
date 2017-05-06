@@ -5,7 +5,7 @@
 
 version: '2'
 
-# network used by both JasperReports Server and PostgreSQL containers
+# network used by both JasperReports Server and MySQL containers
 networks:
   default:
     ipam:
@@ -38,7 +38,7 @@ services:
       # - ~/jasperreports-pro/license:/usr/local/share/jasperreports-pro/license
       # - /tmp/customization:/usr/local/share/jasperreports-pro/customization
   js_database:
-    image: postgres:9.4
+    image: mysql:5.5
     env_file: .env
 
 volumes:

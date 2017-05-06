@@ -1,4 +1,4 @@
-# TIBCO  JasperReports&reg; Server for Docker
+# TIBCO  JasperReports&reg; Server for Docker with MySQL Repository
 
 # Table of contents
 
@@ -11,10 +11,10 @@
 1. [Build-time environment variables](#build-time-environment-variables)
 1. [Build and run](#build-and-run)
   1. [Building and running with docker-compose (recommended)](#compose)
-  1. [Building and running with a pre-existing PostgreSQL instance](
-#building-and-running-with-a-pre-existing-postgresql-instance)
-  1. [Creating a new PostgreSQL instance during build](
-#creating-a-new-postgresql-instance-during-build)
+  1. [Building and running with a pre-existing MySQL instance](
+#building-and-running-with-a-pre-existing-mysql-instance)
+  1. [Creating a new MySQL instance during build](
+#creating-a-new-mysql-instance-during-build)
 1. [Additional configurations](#additional-configurations)
   1. [Runtime variables](#runtime-variables)
   1. [SSL configuration](#ssl-configuration)
@@ -57,8 +57,8 @@ or modified to meet the needs of your environment.
 The distribution can be downloaded from 
 [https://github.com/TIBCOSoftware/js-docker](#https://github.com/TIBCOSoftware/js-docker).
 
-This configuration has been certified using
-the PostgreSQL 9.4 database with JasperReports Server 6.3.0.
+This configuration has been tested using
+the MySQL 5.5 database with JasperReports Server 6.3.0.
 
 Basic knowledge of Docker and the underlying infrastructure is required.
 For more information about Docker see the
@@ -80,8 +80,8 @@ version 1.12 or higher
 - Contact your sales
 representative for information about licensing. If you do not specify a
 TIBCO Jaspersoft license, the evaluation license is used.
-- (*optional*) Preconfigured PostgreSQL 9.4 database. If you do not
-currently have a PostgreSQL instance, you can create a PostgreSQL container
+- (*optional*) Preconfigured MySQL 5.5 database. If you do not
+currently have a MySQL instance, you can create a MySQL container
 at build time.
 
 ## Downloading JasperReports Server WAR
@@ -137,7 +137,7 @@ for more information:
 - `DB_NAME` - JasperReports Server database name
 - `JRS_DBCONFIG_REGEN` - When true, forces database configuration regeneration
 on container run. This variable can be used to point an already existing
-JasperReports Server container to a new PostgreSQL server.
+JasperReports Server container to a new MySQL server.
 - `JRS_HTTPS_ONLY` - When true, enables HTTPS-only mode.
 HTTPS-only requires modifications to the
 `Dockerfile`; see [SSL configuration](ssl-configuration)
@@ -146,13 +146,13 @@ Note that `JRS_HTTP_ONLY` must be set directly in the `Dockerfile`,
 because it requires additional configuration.
 
 [Compose](https://docs.docker.com/compose) requires
-the following additional variables to set up the generated PostgreSQL
+the following additional variables to set up the generated MySQL
 container.
-If these variables are not set, PostgreSQL will be generated with no access
+If these variables are not set, MySQL will be generated with no access
 restrictions.
 
-- `POSTGRES_USER`
-- `POSTGRES_PASSWORD`
+- `MYSQL_USER`
+- `MYSQL_PASSWORD`
 
 # Build and run
 
@@ -160,7 +160,7 @@ restrictions.
 
 `docker-compose.yml` provides a sample
 [Compose](https://docs.docker.com/compose/compose-file/) implementation of
-JasperReports Server with PostgreSQL server, configured with volumes for
+JasperReports Server with MySQL server, configured with volumes for
 JasperReports Server web application and license, with pre-setup network and
 mapped ports. There is also a pre-configured `.env` file for use with
 docker-compose.
@@ -173,15 +173,15 @@ $ docker-compose build
 $ docker-compose up
 ```
 
-## Building and running with a pre-existing PostgreSQL instance
+## Building and running with a pre-existing MySQL instance
 
 To build and run a JasperReports Server container with a pre-existing
-PostgreSQL 9.4 instance, execute these commands in your repository:
+MySQL 5.5 instance, execute these commands in your repository:
 
 ```console
 $ docker build -t jasperserver-pro:6.3.0 .
 $ docker run --name some-jasperserver -p 8080:8080 \
--e DB_HOST=some-external-postgres -e DB_USER=username \
+-e DB_HOST=some-external-mysql -e DB_USER=username \
 -e DB_PASSWORD=password -d jasperserver-pro:6.3.0
 ```
 
@@ -190,37 +190,37 @@ Where:
 - `jasperserver-pro:6.3.0` is the image name and version tag
 for your build. This image will be used to create containers.
 - `some-jasperserver` is the name of the new JasperReports Server container.
-- `some-external-postgres` is the hostname, fully qualified domain name
-(FQDN), or IP address of your PostgreSQL server.
--  `username` and `password` are the user credentials for your PostgreSQL
+- `some-external-mysql` is the hostname, fully qualified domain name
+(FQDN), or IP address of your MySQL server.
+-  `username` and `password` are the user credentials for your MySQL
 server.
 
-## Creating a new PostgreSQL instance during build
+## Creating a new MySQL instance during build
 
-To build and run JasperReports Server with a new PostgreSQL container
+To build and run JasperReports Server with a new MySQL container
 you can use linking:
 
 ```console
-$ docker run --name some-postgres -e POSTGRES_USER=username \
--e POSTGRES_PASSWORD=password -d postgres:9.4
+$ docker run --name some-mysql -e MYSQL_ROOT_PASSWORD=password \
+-d mysql:5.5
 $ docker build -t jasperserver-pro:6.3.0 .
-$ docker run --name some-jasperserver --link some-postgres:postgres \
--p 8080:8080 -e DB_HOST=some-postgres -e DB_USER=db_username \
+$ docker run --name some-jasperserver --link some-mysql:mysql \
+-p 8080:8080 -e DB_HOST=some-mysql -e DB_USER=db_username \
 -e DB_PASSWORD=db_password -d jasperserver-pro:6.3.0
 ```
 
 Where:
 
-- `some-postgres` is the name of your new PostgreSQL container.
+- `some-mysql` is the name of your new MySQL container.
 - `username` and `password` are the user credentials to use for the
-new PostgreSQL container and JasperReports Server container.
-- `postgres:9.4` [PostgreSQL 9.4](https://hub.docker.com/_/postgres/) is
-the PostgreSQL image from Docker Hub.
+new MySQL container and JasperReports Server container.
+- `mysql:5.5` [MySQL 5.5](https://hub.docker.com/_/mysql/) is
+the MySQL image from Docker Hub.
 - `jasperserver-pro:6.3.0` is the image name and version tag
 for your build. This image will be used to create containers.
 - `some-jasperserver` is the name of the new JasperReports Server container.
 -  `db_username` and `db_password` are the user credentials for accessing
-the PostgreSQL server. Database settings should be modified for your setup.
+the MySQL server. Database settings should be modified for your setup.
 
 # Additional configurations
 
@@ -268,8 +268,8 @@ local path. For example, to access a license on a local directory on Mac:
 ```console
 docker run --name new-jrs
 -v /<path>/resources/license:/usr/local/share/jasperreports-pro/license 
--p 8080:8080 -e DB_HOST=172.17.10.182 -e DB_USER=postgres -e 
-DB_PASSWORD=postgres -d jasperserver-pro:6.3.0
+-p 8080:8080 -e DB_HOST=172.17.10.182 -e DB_USER=root -e 
+DB_PASSWORD=root -d jasperserver-pro:6.3.0
 ```
 
 ## Web application
@@ -283,8 +283,8 @@ $ docker volume create --name some-jasperserver-data
 $ docker run --name some-jasperserver \
 -v some-jasperserver-data:/usr/local/tomcat/webapps/jasperserver-pro \
 jasperserver-pro:6.3.0
--p 8080:8080 -e DB_HOST=172.17.10.182 -e DB_USER=postgres -e \
-DB_PASSWORD=postgres -d jasperserver-pro:6.3.0
+-p 8080:8080 -e DB_HOST=172.17.10.182 -e DB_USER=root -e \
+DB_PASSWORD=root -d jasperserver-pro:6.3.0
 ```
 Where:
 
@@ -325,8 +325,8 @@ $ sudo cp jasperserver.license \
 /var/lib/docker/volumes/some-jasperserver-license/_data
 $ docker run --name some-jasperserver \
 -v some-jasperserver-license:/usr/local/share/jasperreports-pro/license \
--p 8080:8080 -e DB_HOST=172.17.10.182 -e DB_USER=postgres \
--e DB_PASSWORD=postgres -d jasperserver-pro:6.3.0
+-p 8080:8080 -e DB_HOST=172.17.10.182 -e DB_USER=root \
+-e DB_PASSWORD=root -d jasperserver-pro:6.3.0
 
 ```
 Where:
@@ -390,8 +390,8 @@ for log storage:
 $ docker volume create --name some-jasperserver-log
 $ docker run --name some-jasperserver -v \
 some-jasperserver-log:/usr/local/tomcat/webapps/jasperserver-pro/WEB-INF/logs \
--p 8080:8080 -e DB_HOST=172.17.10.182 -e DB_USER=postgres \
--e DB_PASSWORD=postgres -d jasperserver-pro:6.3.0
+-p 8080:8080 -e DB_HOST=172.17.10.182 -e DB_USER=root \
+-e DB_PASSWORD=root -d jasperserver-pro:6.3.0
 ```
 Where:
 
@@ -431,8 +431,8 @@ $ docker stop some-jasperserver
 $ docker run --name some-jasperserver-2 -v \
 some-jasperserver-data:/usr/local/tomcat/webapps/jasperserver-pro \
 -d jasperserver-pro:6.3.0
--p 8080:8080 -e DB_HOST=172.17.10.182 -e DB_USER=postgres \
--e DB_PASSWORD=postgres -d jasperserver-pro:6.3.0
+-p 8080:8080 -e DB_HOST=172.17.10.182 -e DB_USER=root \
+-e DB_PASSWORD=root -d jasperserver-pro:6.3.0
 ```
 Where:
 
@@ -461,8 +461,8 @@ $ sudo cp custom.zip \
 $ docker run --name some-jasperserver -v \
 some-jasperserver-customization:\
 /usr/local/share/jasperreports-pro/customization \
--p 8080:8080 -e DB_HOST=172.17.10.182 -e DB_USER=postgres \
--e DB_PASSWORD=postgres -d jasperserver-pro:6.3.0
+-p 8080:8080 -e DB_HOST=172.17.10.182 -e DB_USER=root \
+-e DB_PASSWORD=root -d jasperserver-pro:6.3.0
 ```
 Where:
 
